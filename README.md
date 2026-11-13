@@ -1,41 +1,61 @@
 # Multi-Robot Warehouse Coordination Using Deep Reinforcement Learning
 
-## Project Overview
+## About the Project
 
-This project explores how multiple robots can coordinate in a shared warehouse environment using Deep Reinforcement Learning.
+How can multiple robots work together in a warehouse without blocking each other?
 
-The robots are assigned packages to collect and deliver while navigating obstacles and narrow shared aisles. The main challenge is to complete deliveries efficiently while avoiding collisions and deadlocks.
+That was the main question behind this project.
 
-We developed a multi-robot warehouse simulation using **Python and Gymnasium** and compared different approaches, including Random Policy, BFS-based Shortest Path, Independent DQN and Shared Double-Dueling DQN.
+I developed a simulated warehouse environment where multiple robots collect their assigned packages and deliver them to their destinations. The challenge is that they share narrow aisles and need to avoid obstacles, collisions and deadlocks while completing their tasks.
+
+To explore this problem, I implemented a multi-robot environment using Python and Gymnasium and experimented with different approaches, including Independent DQN and Shared Double-Dueling DQN.
+
+The main objective was to investigate whether sharing a learning model could help robots coordinate more effectively.
 
 ## Project Objectives
 
-- Develop a multi-robot warehouse simulation environment.
-- Enable robots to collect and deliver assigned packages.
-- Handle obstacles, shared aisles and robot collisions.
-- Compare independent and parameter-shared reinforcement learning approaches.
-- Evaluate performance as the number of robots increases.
+- Build a warehouse simulation with multiple robots, packages and obstacles.
+- Enable robots to collect and deliver their assigned packages.
+- Handle collisions, shared destinations and position swaps.
+- Compare different reinforcement learning approaches.
+- Investigate how performance changes when the number of robots increases.
 
 ## Environment
 
-The simulation includes:
+The warehouse environment includes:
+
 - Multiple robots with individual package assignments.
-- Warehouse obstacles and narrow shared aisles.
+- Static obstacles and narrow shared aisles.
 - Five possible actions: Up, Down, Left, Right and Wait.
-- Collision handling for both shared destinations and position swaps.
+- Collision handling for robots attempting to enter the same cell or swap positions.
+- Rewards for package collection, delivery, progress and collision avoidance.
+
+## Project Workflow
+
+The following diagram illustrates how the robots interact with the warehouse and how the shared learning model selects actions.
+
+```mermaid
+flowchart TD
+    A["Warehouse Environment<br/>Robots, packages and obstacles"] --> B["Robot Observations<br/>Local grid, target, goal and robot ID"]
+    B --> C["Shared Double-Dueling DQN"]
+    C --> D["Action Selection<br/>Up, Down, Left, Right or Wait"]
+    D --> E["Warehouse Interaction<br/>Movement, pickup, delivery and collision handling"]
+    E --> F["Reward and Evaluation<br/>Success, collisions, packages and makespan"]
+    F --> B
+```
 
 ## Algorithms Compared
 
 | Algorithm | Description |
 |---|---|
 | Random Policy | Selects valid actions randomly |
-| Shortest Path | Uses BFS-based distances without robot coordination |
+| BFS-based Shortest Path | Uses shortest-path distances without coordinating with other robots |
 | Independent DQN | Each robot learns using its own network |
-| Shared Double-Dueling DQN | Robots share a learning network |
+| Shared Double-Dueling DQN | Robots use a shared learning network |
 
-## Results
+## Experimental Results
 
-The two-robot comparison shows that Shared DQN achieved the strongest overall performance in our reported experiment:
+In the reported two-robot comparison experiment, the shared DQN achieved the highest success rate among the four approaches.
 
 | Metric | Random | Shortest Path | Independent DQN | Shared DQN |
 |---|---:|---:|---:|---:|
@@ -43,7 +63,7 @@ The two-robot comparison shows that Shared DQN achieved the strongest overall pe
 | Collisions / episode | 7 | 150 | 15 | **11** |
 | Makespan (steps) | 147 | 83 | 78 | **43** |
 
-*Values are read from the project's comparison chart.*
+*Values are taken from the project's comparison chart.*
 
 ### Performance Comparison
 
@@ -51,17 +71,19 @@ The two-robot comparison shows that Shared DQN achieved the strongest overall pe
 
 ### Scalability
 
-![Scalability results](results/scalability.png)
+The scalability experiment investigates how the approach performs with different numbers of robots. It also examines curriculum training, where a policy trained with two robots is adapted to a four-robot environment.
 
-The scalability experiment evaluates performance with two and four robots. It also compares a shared policy trained on two robots with a curriculum-trained policy adapted from two to four robots.
+![Scalability results](results/scalability.png)
 
 ### Training Performance
 
+The training curves show how the agent's performance changes during learning.
+
 ![Training curves](results/training_curves.png)
 
-## Simulation
+## Simulation Examples
 
-The simulation visualisations demonstrate how robots navigate the warehouse, collect packages and avoid collisions.
+The following simulations show robots navigating the warehouse, collecting packages and interacting in shared aisles.
 
 ### Two-Robot Simulation
 
@@ -70,6 +92,15 @@ The simulation visualisations demonstrate how robots navigate the warehouse, col
 ### Four-Robot Simulation
 
 ![Four robot simulation](results/simulations/simulation_aisle_4.gif)
+
+## What I Learned
+
+A few observations stood out during the experiments:
+
+- Robots can learn to wait and yield instead of repeatedly trying to enter a narrow shared aisle.
+- Sharing network parameters allows robots to learn from experiences collected by multiple agents.
+- Reward design has an important influence on task completion and collision behaviour.
+- A policy that works in one warehouse layout does not necessarily generalise to a different layout.
 
 ## Technologies Used
 
@@ -89,36 +120,46 @@ multi-robot-warehouse-reinforcement-learning/
 ├── README.md
 ├── requirements.txt
 ├── notebooks/
+│   └── multi_robot_rl_pickup.ipynb
 ├── report/
+│   └── final_project_report.pdf
 ├── results/
+│   ├── comparison_2_robots.png
+│   ├── scalability.png
+│   ├── training_curves.png
 │   └── simulations/
+│       ├── simulation_aisle_2.gif
+│       └── simulation_aisle_4.gif
 └── src/
 ```
 
 ## How to Run
 
-1. Clone this repository:
+Clone the repository:
 
 ```bash
 git clone YOUR_REPOSITORY_URL
 ```
 
-2. Install the required dependencies:
+Install the required dependencies:
 
 ```bash
 pip install -r requirements.txt
 ```
 
-3. Open the notebook in Jupyter Notebook or Google Colab.
-
-4. Run the cells to create the environment, train the agents and evaluate their performance.
+Open the notebook in Jupyter Notebook or Google Colab and run the cells to create the environment, train the agents and evaluate their performance.
 
 ## Limitations and Future Work
 
-- The environment uses a discrete grid rather than continuous robot movement.
-- Robot package assignments are predefined.
-- More advanced coordination approaches could be explored, including recurrent DQN and value decomposition methods.
-- Future work could investigate larger warehouse layouts and more robots.
+The current environment uses a discrete grid rather than continuous robot movement. Package assignments are predefined, and the environment uses simplified robot dynamics.
+
+Future improvements could include:
+
+- Testing more advanced coordination approaches such as QMIX.
+- Exploring recurrent reinforcement learning.
+- Introducing moving obstacles.
+- Allowing robots to allocate packages dynamically.
+- Testing on larger and previously unseen warehouse layouts.
 
 ## Project Report
 
@@ -126,5 +167,6 @@ The complete project report is available in the `report/` folder.
 
 ---
 
-**Academic project:** Introduction to Reinforcement Learning  
+**Academic project:** Introduction to Reinforcement Learning
+
 **Project:** Multi-Robot Pick-and-Deliver with Obstacle and Collision Avoidance in Shared Aisles
